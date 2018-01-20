@@ -94,32 +94,20 @@ MainFor:
 				pprecission = int(tmp)
 			case "+":
 				err = dualOp(new(big.Float).Add)
-				if err != nil {
-					log.Println(err)
-					continue MainFor
-				}
 			case "*":
 				err = dualOp(new(big.Float).Mul)
-				if err != nil {
-					log.Println(err)
-					continue MainFor
-				}
 			case "/":
 				err = dualOp(new(big.Float).Quo)
-				if err != nil {
-					log.Println(err)
-					continue MainFor
-				}
 			case "-":
 				err = dualOp(new(big.Float).Sub)
-				if err != nil {
-					log.Println(err)
-					continue MainFor
-				}
 			case "q":
 				os.Exit(0)
 			default:
 				log.Printf("unkown command %s", e)
+			}
+			if err != nil {
+				log.Println(err)
+				continue MainFor
 			}
 		}
 	}
