@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"math/big"
@@ -16,7 +17,7 @@ type pile struct {
 }
 
 func (p *pile) Push(f *big.Float) error {
-	if p.top == cap(p.elements) {
+	if p.top == len(p.elements) {
 		p.elements = append(p.elements, f)
 	} else {
 		p.elements[p.top] = f
@@ -33,10 +34,18 @@ func (p *pile) Pop() (*big.Float, error) {
 	return p.elements[p.top], nil
 }
 
+var p *pile
+
 func main() {
+	var precission uint
+	var pprecission int
+	flag.UintVar(&precission, "precission", 512, "Setup float precission")
+	flag.IntVar(&pprecission, "print-precission", 64, "Setup float precission for printing")
+
+	flag.Parse()
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanLines)
-	p := new(pile)
+	p = new(pile)
 
 MainFor:
 	for scanner.Scan() {
@@ -51,7 +60,7 @@ MainFor:
 				continue MainFor
 			}
 			if match {
-				f, _, err := big.ParseFloat(e, 10, 512, big.ToNearestEven)
+				f, _, err := big.ParseFloat(e, 10, precission, big.ToNearestEven)
 				if err != nil {
 					log.Printf("error parsing bigfloat: %v", err)
 					continue MainFor
@@ -66,8 +75,68 @@ MainFor:
 					log.Println(err)
 					continue MainFor
 				}
-				fmt.Println(f.Text('f', 512))
+				fmt.Println(f.Text('f', pprecission))
+			case "n":
+				f, err := p.Pop()
+				if err != nil {
+					log.Println(err)
+					continue MainFor
+				}
+				fmt.Println(f.Text('f', pprecission))
+				p.Push(f)
+			case "pp":
+				f, err := p.Pop()
+				if err != nil {
+					log.Println(err)
+					continue MainFor
+				}
+				tmp, _ := f.Int64()
+				pprecission = int(tmp)
+			case "+":
+				err = dualOp(new(big.Float).Add)
+				if err != nil {
+					log.Println(err)
+					continue MainFor
+				}
+			case "*":
+				err = dualOp(new(big.Float).Mul)
+				if err != nil {
+					log.Println(err)
+					continue MainFor
+				}
+			case "/":
+				err = dualOp(new(big.Float).Quo)
+				if err != nil {
+					log.Println(err)
+					continue MainFor
+				}
+			case "-":
+				err = dualOp(new(big.Float).Sub)
+				if err != nil {
+					log.Println(err)
+					continue MainFor
+				}
+			case "q":
+				os.Exit(0)
+			default:
+				log.Printf("unkown command %s", e)
 			}
 		}
 	}
+}
+
+func dualOp(operation func(f1, f2 *big.Float) *big.Float) error {
+	f1, err := p.Pop()
+	if err != nil {
+		return err
+	}
+	f2, err := p.Pop()
+	if err != nil {
+		return err
+	}
+	err = p.Push(operation(f2, f1))
+	if err != nil {
+		return err
+	}
+	return nil
 }
