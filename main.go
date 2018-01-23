@@ -9,6 +9,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/ALTree/bigfloat"
 )
 
 type pile struct {
@@ -76,6 +78,7 @@ MainFor:
 					continue MainFor
 				}
 				fmt.Println(f.Text('f', pprecission))
+				p.Push(f)
 			case "n":
 				f, err := p.Pop()
 				if err != nil {
@@ -83,7 +86,6 @@ MainFor:
 					continue MainFor
 				}
 				fmt.Println(f.Text('f', pprecission))
-				p.Push(f)
 			case "pp":
 				f, err := p.Pop()
 				if err != nil {
@@ -100,6 +102,10 @@ MainFor:
 				err = dualOp(new(big.Float).Quo)
 			case "-":
 				err = dualOp(new(big.Float).Sub)
+			case "^":
+				err = dualOp(bigfloat.Pow)
+			case "v":
+				err = singleOp(bigfloat.Sqrt)
 			case "q":
 				os.Exit(0)
 			default:
@@ -113,6 +119,17 @@ MainFor:
 	}
 }
 
+func singleOp(operation func(f *big.Float) *big.Float) error {
+	f, err := p.Pop()
+	if err != nil {
+		return err
+	}
+	err = p.Push(operation(f))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func dualOp(operation func(f1, f2 *big.Float) *big.Float) error {
 	f1, err := p.Pop()
 	if err != nil {
