@@ -13,6 +13,12 @@ import (
 	"github.com/ALTree/bigfloat"
 )
 
+const (
+	e   = "2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642742746"
+	pi  = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214"
+	phi = "1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475"
+)
+
 type pile struct {
 	elements []*big.Float
 	top      int
@@ -51,7 +57,6 @@ func main() {
 	scanner.Split(bufio.ScanLines)
 	p = new(pile)
 
-MainFor:
 	for scanner.Scan() {
 		entries := strings.Split(scanner.Text(), " ")
 		for _, e := range entries {
@@ -61,7 +66,7 @@ MainFor:
 			str, err := parse(e)
 			if err != nil {
 				log.Printf("error parsing %s: %v", e, err)
-				continue MainFor
+				break
 			}
 			if str != "" {
 				fmt.Println(str)
@@ -70,15 +75,15 @@ MainFor:
 	}
 }
 
-func parse(e string) (string, error) {
-	if isFloat(e) {
-		f, _, err := big.ParseFloat(e, 10, precission, big.ToNearestEven)
+func parse(s string) (string, error) {
+	if isFloat(s) {
+		f, _, err := big.ParseFloat(s, 10, precission, big.ToNearestEven)
 		if err != nil {
 			return "", fmt.Errorf("error parsing bigfloat: %v", err)
 		}
 		return "", p.Push(f)
 	}
-	switch e {
+	switch s {
 	case "p":
 		f, err := p.Pop()
 		if err != nil {
@@ -98,6 +103,12 @@ func parse(e string) (string, error) {
 		}
 		tmp, _ := f.Int64()
 		pprecission = int(tmp)
+	case "pi":
+		return parse(pi)
+	case "e":
+		return parse(e)
+	case "phi":
+		return parse(phi)
 	case "+":
 		return "", dualOp(new(big.Float).Add)
 	case "*":
