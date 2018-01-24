@@ -21,6 +21,34 @@ func TestIsFloat(t *testing.T) {
 		},
 		{
 			entry:    "314e10",
+			expected: true,
+		},
+		{
+			entry:    "-314.10e10",
+			expected: true,
+		},
+		{
+			entry:    "31.4e-10",
+			expected: true,
+		},
+		{
+			entry:    "-314.22e-10",
+			expected: true,
+		},
+		{
+			entry:    "-",
+			expected: false,
+		},
+		{
+			entry:    "-e",
+			expected: false,
+		},
+		{
+			entry:    "e10",
+			expected: false,
+		},
+		{
+			entry:    "e",
 			expected: false,
 		},
 	}
@@ -61,14 +89,14 @@ func TestParse(t *testing.T) {
 		{entry: "x", expString: "", expError: true},
 	}
 	for _, tc := range tseq {
-		str, err := parse(tc.entry)
+		str, err := parseEntry(tc.entry)
 		if str != tc.expString {
-			t.Errorf("expected '%s' got '%s'", tc.expString, str)
+			t.Errorf("expected '%s' got '%s' for %s", tc.expString, str, tc.entry)
 		}
 		if err != nil && !tc.expError {
-			t.Errorf("not error expected but got: %v", err)
+			t.Errorf("not error expected but got: %v for %s", err, tc.entry)
 		} else if err == nil && tc.expError {
-			t.Errorf("error expected, but got none")
+			t.Errorf("error expected, but got none for %s", tc.entry)
 		}
 
 	}

@@ -63,7 +63,7 @@ func main() {
 			if e == "" {
 				continue
 			}
-			str, err := parse(e)
+			str, err := parseEntry(e)
 			if err != nil {
 				log.Printf("error parsing %s: %v", e, err)
 				break
@@ -75,9 +75,9 @@ func main() {
 	}
 }
 
-func parse(s string) (string, error) {
+func parseEntry(s string) (string, error) {
 	if isFloat(s) {
-		f, _, err := big.ParseFloat(s, 10, precission, big.ToNearestEven)
+		f, err := parseFloat(s)
 		if err != nil {
 			return "", fmt.Errorf("error parsing bigfloat: %v", err)
 		}
@@ -104,11 +104,11 @@ func parse(s string) (string, error) {
 		tmp, _ := f.Int64()
 		pprecission = int(tmp)
 	case "pi":
-		return parse(pi)
+		return parseEntry(pi)
 	case "e":
-		return parse(e)
+		return parseEntry(e)
 	case "phi":
-		return parse(phi)
+		return parseEntry(phi)
 	case "+":
 		return "", dualOp(new(big.Float).Add)
 	case "*":
@@ -132,11 +132,16 @@ func parse(s string) (string, error) {
 
 func isFloat(s string) bool {
 	//this should never return an error
-	match, err := regexp.MatchString("^[0-9\\.,]*$", s)
+	match, err := regexp.MatchString("^-?[0-9\\.]+(e-?[0-9]+)?$", s)
 	if err != nil {
 		log.Printf("error matching: %v", err)
 	}
 	return match
+}
+
+func parseFloat(s string) (*big.Float, error) {
+	f, _, err := big.ParseFloat(s, 10, precission, big.ToNearestEven)
+	return f, err
 }
 
 func singleOp(operation func(f *big.Float) *big.Float) error {
